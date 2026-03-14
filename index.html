@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>速率實驗室：清晰尺規版</title>
+    <style>
+        :root { --bus: #007bff; --minibus: #ffc107; --taxi: #dc3545; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #f0f4f8; padding: 20px; }
+        .container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        
+        /* 輸入面板 */
+        .panel { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .card { flex: 1; min-width: 250px; padding: 15px; border-radius: 10px; border: 1px solid #ddd; background: #fafafa; border-top: 6px solid; }
+        .input-group { margin: 10px 0; display: flex; align-items: center; gap: 5px; }
+        input { width: 70px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        select { padding: 7px; border-radius: 4px; }
+
+        /* 按鈕 */
+        .controls { display: flex; gap: 10px; margin-bottom: 25px; }
+        button { flex: 1; padding: 15px; font-weight: bold; cursor: pointer; border: none; border-radius: 8px; font-size: 18px; transition: 0.2s; }
+        .btn-run { background: #28a745; color: white; }
+        .btn-run:hover { background: #218838; }
+        .btn-reset { background: #6c757d; color: white; }
+        .btn-reset:hover { background: #5a6268; }
+
+        /* 賽道 */
+        .race-track { background: #333; border-radius: 10px; padding: 20px 40px 100px 40px; position: relative; margin-bottom: 30px; }
+        .lane { height: 65px; border-bottom: 1px dashed #555; position: relative; display: flex; align-items: center; }
+        .vehicle { position: absolute; left: 0; font-size: 45px; transition: left 2.5s cubic-bezier(0.1, 0.5, 0.2, 1); z-index: 2; }
+        
+        /* 常駐尺規 */
+        .ruler-container { position: absolute; bottom: 20px; left: 40px; right: 40px; height: 50px; border-top: 2px solid #fff; }
+        .mark { position: absolute; width: 1px; height: 12px; background: white; top: 0; }
+        .mark-label { position: absolute; top: 18px; transform: translateX(-50%); color: #fff; font-size: 12px; white-space: nowrap; }
+        .km-label { top: 38px; color: #00d4ff; font-weight: bold; }
+
+        /* 摺疊面板 */
+        details { border: 1px solid #ddd; border-radius: 8px; background: #fff; }
+        summary { padding: 15px; cursor: pointer; font-weight: bold; color: #333; background: #eee; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: center; }
+        th { background: #f8f9fa; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 style="text-align: center; color: #2c3e50;">🚌 交通工具速率模擬實驗</h1>
+    
+    <div class="panel">
+        <div class="card" style="border-color: var(--bus);">
+            <h3>巴士</h3>
+            <div class="input-group">距離: <input type="number" id="d1" placeholder="數字"> <select id="du1"><option value="m">米(m)</option><option value="km">公里(km)</option></select></div>
+            <div class="input-group">時間: <input type="number" id="t1" placeholder="數字"> <select id="tu1"><option value="s">秒(s)</option><option value="h">小時(hr)</option></select></div>
+        </div>
+        <div class="card" style="border-color: var(--minibus);">
+            <h3>小巴</h3>
+            <div class="input-group">距離: <input type="number" id="d2" placeholder="數字"> <select id="du2"><option value="m">米(m)</option><option value="km">公里(km)</option></select></div>
+            <div class="input-group">時間: <input type="number" id="t2" placeholder="數字"> <select id="tu2"><option value="s">秒(s)</option><option value="h">小時(hr)</option></select></div>
+        </div>
+        <div class="card" style="border-color: var(--taxi);">
+            <h3>的士</h3>
+            <div class="input-group">距離: <input type="number" id="d3" placeholder="數字"> <select id="du3"><option value="m">米(m)</option><option value="km">公里(km)</option></select></div>
+            <div class="input-group">時間: <input type="number" id="t3" placeholder="數字"> <select id="tu3"><option value="s">秒(s)</option><option value="h">小時(hr)</option></select></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-run" onclick="startRace()">🏁 開始比賽</button>
+        <button class="btn-reset" onclick="resetRace()">🔄 重置數據與起點</button>
+    </div>
+
+    <div class="race-track">
+        <div class="lane"><span id="v1" class="vehicle">🚌</span></div>
+        <div class="lane"><span id="v2" class="vehicle">🚐</span></div>
+        <div class="lane"><span id="v3" class="vehicle">🚕</span></div>
+        <div class="ruler-container" id="ruler">
+            </div>
+    </div>
+
+    <details>
+        <summary>📂 查看計算方法 (公式：速率 = 距離 ÷ 時間)</summary>
+        <div style="padding: 15px;">
+            <table id="resultTable">
+                <thead>
+                    <tr><th>工具</th><th>標準距離(m)</th><th>標準時間(s)</th><th>速率(m/s)</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="4">請輸入數據並按開始</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </details>
+</div>
+
+<script>
+// 初始渲染尺規 (預設 1000m)
+function drawRuler(maxDist = 1000) {
+    const ruler = document.getElementById('ruler');
+    ruler.innerHTML = '';
+    const steps = 5;
+    for (let i = 0; i <= steps; i++) {
+        const dist = (maxDist / steps) * i;
+        const left = (i / steps) * 100;
+        const mark = document.createElement('div');
+        mark.className = 'mark';
+        mark.style.left = left + '%';
+        mark.innerHTML = `
+            <div class="mark-label">${dist.toFixed(0)}m</div>
+            <div class="mark-label km-label">${(dist / 1000).toFixed(1)}km</div>
+        `;
+        ruler.appendChild(mark);
+    }
+}
+
+// 頁面加載時先畫一次
+drawRuler();
+
+function startRace() {
+    let vehicles = [];
+    let currentMaxDist = 0;
+
+    for (let i = 1; i <= 3; i++) {
+        let d = parseFloat(document.getElementById('d' + i).value);
+        let t = parseFloat(document.getElementById('t' + i).value);
+        let du = document.getElementById('du' + i).value;
+        let tu = document.getElementById('tu' + i).value;
+
+        if (isNaN(d) || isNaN(t) || t <= 0) {
+            alert("請填寫所有欄位並確保時間大於 0");
+            return;
+        }
+
+        let dm = du === 'km' ? d * 1000 : d;
+        let ts = tu === 'h' ? t * 3600 : t;
+        let speed = dm / ts;
+
+        vehicles.push({ id: 'v' + i, dm: dm, ts: ts, speed: speed });
+        if (dm > currentMaxDist) currentMaxDist = dm;
+    }
+
+    // 如果輸入距離超過預設的 1000m，更新尺規
+    drawRuler(Math.max(currentMaxDist, 1000));
+
+    // 動畫移動
+    const rulerMax = Math.max(currentMaxDist, 1000);
+    vehicles.forEach(v => {
+        const el = document.getElementById(v.id);
+        const percent = (v.dm / rulerMax) * 100;
+        el.style.left = `calc(${percent}% - 45px)`;
+    });
+
+    // 更新表格
+    let html = vehicles.map((v, idx) => `
+        <tr>
+            <td>${idx==0?'巴士':idx==1?'小巴':'的士'}</td>
+            <td>${v.dm} m</td>
+            <td>${v.ts} s</td>
+            <td><strong>${v.speed.toFixed(2)} m/s</strong></td>
+        </tr>
+    `).join('');
+    document.querySelector('#resultTable tbody').innerHTML = html;
+}
+
+function resetRace() {
+    // 重置輸入
+    for (let i = 1; i <= 3; i++) {
+        document.getElementById('d' + i).value = '';
+        document.getElementById('t' + i).value = '';
+        document.getElementById('v' + i).style.left = '0';
+    }
+    // 重置尺規與表格
+    drawRuler(1000);
+    document.querySelector('#resultTable tbody').innerHTML = '<tr><td colspan="4">請輸入數據並按開始</td></tr>';
+}
+</script>
+</body>
+</html>
